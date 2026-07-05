@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All-in-One Video Downloader</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #121212; color: white; text-align: center; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: none; border-radius: 5px; box-sizing: border-box; }
+        button { width: 90%; padding: 12px; background-color: #00adb5; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        button:hover { background-color: #007a80; }
+        .result { margin-top: 20px; display: none; text-align: left; }
+        .result a { display: block; background: #25d366; color: white; text-align: center; padding: 12px; margin: 8px 0; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        .result a.audio { background: #34b7f1; }
+        .supported { font-size: 12px; color: #888; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Multi-Platform Downloader</h2>
+    <p>Unduh Video & Audio dari Berbagai Link</p>
+    
+    <input type="text" id="videoUrl" placeholder="Tempel link video di sini (TikTok, IG, YT, dll)...">
+    <button onclick="processVideo()">Proses Link</button>
+
+    <div id="loading" style="display:none; margin-top:15px; color: #00adb5; font-weight: bold;">Sedang memproses... Mohon tunggu...</div>
+
+    <div class="result" id="resultBox">
+        <h3 style="border-bottom: 1px solid #333; padding-bottom: 5px;">Hasil Pencarian:</h3>
+        <p id="videoTitle" style="font-weight: bold; font-size: 14px; color: #ccc;"></p>
+        <div id="downloadLinks"></div>
+    </div>
+
+    <p class="supported">Mendukung: TikTok, Instagram, YouTube, Facebook, Twitter/X, dll.</p>
+</div>
+
+<script>
+async function processVideo() {
+    const url = document.getElementById('videoUrl').value;
+    const loading = document.getElementById('loading');
+    const resultBox = document.getElementById('resultBox');
+    const downloadLinks = document.getElementById('downloadLinks');
+    const videoTitle = document.getElementById('videoTitle');
+
+    if (!url) { alert('Silakan tempel link terlebih dahulu!'); return; }
+
+    loading.style.display = 'block';
+    resultBox.style.display = 'none';
+    downloadLinks.innerHTML = '';
+
+    // Penanganan khusus TikTok (Agar video bersih tanpa watermark)
+    if (url.includes('tiktok.com')) {
+        try {
+            const response = await fetch(`https://tikwm.com/api/?url=${encodeURIComponent(url)}`);
+            const data = await response.json();
+            loading.style.display = 'none';
+
+            if (data.code === 0) {
+                resultBox.style.display = 'block';
+                videoTitle.innerText = data.data.title || "TikTok Video";
+                if (data.data.play) {
+                    downloadLinks.innerHTML += `<a href="${data.data.play}" target="_blank" download>Download Video (Tanpa Watermark)</a>`;
+                }
+                if (data.data.images && data.data.images.length > 0) {
+                    data.data.images.forEach((imgUrl, index) => {
+                        downloadLinks.innerHTML += `<a href="${imgUrl}" target="_blank" download>Download Foto ${index + 1}</a>`;
+                    });
+                }
+                if (data.data.music) {
+                    downloadLinks.innerHTML += `<a href="${data.data.music}" class="audio" target="_blank" download>Download Audio (MP3)</a>`;
+                }
+            } else { alert('Gagal memproses link TikTok.'); }
+        } catch (error) {
+            loading.style.display = 'none';
+            alert('Terjadi kesalahan koneksi.');
+        }
+        return;
+    }
+
+    // Penanganan otomatis untuk Instagram, YouTube, dll menggunakan API publik
+    try {
+        const response = await fetch(`https://api.dreadful-dev.cc/download?url=${encodeURIComponent(url)}`);
+        const data = await response.json();
+        loading.style.display = 'none';
+
+        if (data.status && data.result) {
+            resultBox.style.display = 'block';
+            videoTitle.innerText = data.result.title || "Video Ditemukan";
+
+            if (data.result.video) {
+                downloadLinks.innerHTML += `<a href="${data.result.video}" target="_blank" download>Download Video</a>`;
+            }
+            if (data.result.audio) {
+                downloadLinks.innerHTML += `<a href="${data.result.audio}" class="audio" target="_blank" download>Download Audio (MP3)</a>`;
+            }
+        } else {
+            alert('Format video tidak didukung atau link tidak valid.');
+        }
+    } catch (error) {
+        loading.style.display = 'none';
+        alert('Gagal menghubungi server pengunduh universal.');
+    }
+}
+</script>
+
+</body>
+</html>

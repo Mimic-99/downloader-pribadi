@@ -50,6 +50,88 @@ async function processVideo() {
     resultBox.style.display = 'none';
     downloadLinks.innerHTML = '';
 
+    // 1. PENANGANAN KHUSUS TIKTOK
+    if (url.includes('tiktok.com')) {
+        try {
+            const response = await fetch(`https://tikwm.com/api/?url=${encodeURIComponent(url)}`);
+            const data = await response.json();
+            loading.style.display = 'none';
+
+            if (data.code === 0) {
+                resultBox.style.display = 'block';
+                videoTitle.innerText = data.data.title || "TikTok Video";
+                if (data.data.play) {
+                    downloadLinks.innerHTML += `<a href="${data.data.play}" target="_blank" download>Download Video (Tanpa Watermark)</a>`;
+                }
+                if (data.data.images && data.data.images.length > 0) {
+                    data.data.images.forEach((imgUrl, index) => {
+                        downloadLinks.innerHTML += `<a href="${imgUrl}" target="_blank" download>Download Foto ${index + 1}</a>`;
+                    });
+                }
+                if (data.data.music) {
+                    downloadLinks.innerHTML += `<a href="${data.data.music}" class="audio" target="_blank" download>Download Audio (MP3)</a>`;
+                }
+            } else { alert('Gagal memproses link TikTok.'); }
+        } catch (error) {
+            loading.style.display = 'none';
+            alert('Terjadi kesalahan koneksi ke server TikTok.');
+        }
+        return;
+    }
+
+    // 2. PENANGANAN UNIVERSAL (YOUTUBE, INSTAGRAM, FACEBOOK, DLL) - MENGGUNAKAN SERVER BARU
+    try {
+        // Menggunakan API dari lofiproductions yang lebih stabil untuk platform umum
+        const response = await fetch(`https://api.lofiproductions.com/download?url=${encodeURIComponent(url)}`);
+        const data = await response.json();
+        loading.style.display = 'none';
+
+        if (data.success && data.result) {
+            resultBox.style.display = 'block';
+            videoTitle.innerText = data.result.title || "Video Ditemukan";
+
+            // Jika ada link Video
+            if (data.result.url) {
+                downloadLinks.innerHTML += `<a href="${data.result.url}" target="_blank" download>Download Video</a>`;
+            }
+            // Jika ada link Audio saja
+            if (data.result.audio) {
+                downloadLinks.innerHTML += `<a href="${data.result.audio}" class="audio" target="_blank" download>Download Audio (MP3)</a>`;
+            }
+        } else {
+            // Jalur cadangan jika server utama gagal mendeteksi
+            const backupUrl = `https://api.vyt.co/download?url=${encodeURIComponent(url)}`;
+            downloadLinks.innerHTML += `<a href="${backupUrl}" target="_blank" style="background:#ff9800;">Coba Download via Server Cadangan</a>`;
+            resultBox.style.display = 'block';
+            videoTitle.innerText = "Gunakan tombol di bawah untuk mengunduh:";
+        }
+    } catch (error) {
+        loading.style.display = 'none';
+        // Solusi darurat jika koneksi API terputus total, diarahkan ke pengurai instan
+        resultBox.style.display = 'block';
+        videoTitle.innerText = "Server sibuk. Klik tombol di bawah untuk unduh langsung:";
+        const fallbackUrl = `https://9jarocks.com.ng/download/v2/index.php?url=${encodeURIComponent(url)}`;
+        downloadLinks.innerHTML += `<a href="${fallbackUrl}" target="_blank" style="background:#ff9800;">Unduh Video Sekarang</a>`;
+    }
+}
+</script>
+
+</div>
+
+<script>
+async function processVideo() {
+    const url = document.getElementById('videoUrl').value;
+    const loading = document.getElementById('loading');
+    const resultBox = document.getElementById('resultBox');
+    const downloadLinks = document.getElementById('downloadLinks');
+    const videoTitle = document.getElementById('videoTitle');
+
+    if (!url) { alert('Silakan tempel link terlebih dahulu!'); return; }
+
+    loading.style.display = 'block';
+    resultBox.style.display = 'none';
+    downloadLinks.innerHTML = '';
+
     // Penanganan khusus TikTok (Agar video bersih tanpa watermark)
     if (url.includes('tiktok.com')) {
         try {

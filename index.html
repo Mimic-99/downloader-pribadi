@@ -11,7 +11,8 @@
         button { width: 90%; padding: 12px; background-color: #00adb5; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         button:hover { background-color: #007a80; }
         .result { margin-top: 20px; display: none; text-align: left; }
-        .result a { display: block; background: #25d366; color: white; text-align: center; padding: 12px; margin: 8px 0; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        .result a { display: block; background: #fe2c55; color: white; text-align: center; padding: 12px; margin: 8px 0; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        .result a.universal { background: #25d366; }
         .result a.audio { background: #34b7f1; }
         .supported { font-size: 12px; color: #888; margin-top: 15px; }
     </style>
@@ -20,20 +21,60 @@
 
 <div class="container">
     <h2>Multi-Platform Downloader</h2>
-    <p>Unduh Video & Audio dari Berbagai Link</p>
+    <p>Unduh Video & Audio dari Berbagai Tautan</p>
     
     <input type="text" id="videoUrl" placeholder="Tempel link video di sini (TikTok, IG, YT, dll)...">
     <button onclick="processVideo()">Proses Link</button>
 
-    <div id="loading" style="display:none; margin-top:15px; color: #00adb5; font-weight: bold;">Sedang memproses... Mohon tunggu...</div>
-
     <div class="result" id="resultBox">
-        <h3 style="border-bottom: 1px solid #333; padding-bottom: 5px;">Hasil Pencarian:</h3>
-        <p id="videoTitle" style="font-weight: bold; font-size: 14px; color: #ccc;"></p>
+        <h3 style="border-bottom: 1px solid #333; padding-bottom: 5px;">Tombol Unduhan Siap:</h3>
         <div id="downloadLinks"></div>
     </div>
 
     <p class="supported">Mendukung: TikTok, Instagram, YouTube, Facebook, Twitter/X, dll.</p>
+</div>
+
+<script>
+function processVideo() {
+    const url = document.getElementById('videoUrl').value;
+    const resultBox = document.getElementById('resultBox');
+    const downloadLinks = document.getElementById('downloadLinks');
+
+    if (!url) { alert('Silakan tempel link terlebih dahulu!'); return; }
+
+    resultBox.style.display = 'block';
+    downloadLinks.innerHTML = '';
+
+    // 1. JIKA LINK ADALAH TIKTOK (Gunakan API Khusus TikTok yang Terbukti Aktif)
+    if (url.includes('tiktok.com')) {
+        downloadLinks.innerHTML += `<p style="font-size:14px; color:#aaa;">Metode Langsung (Tanpa Watermark):</p>`;
+        // Menggunakan gerbang eksternal snaptik via web
+        const snaptikUrl = `https://snaptik.app/abc.php?url=${encodeURIComponent(url)}`;
+        downloadLinks.innerHTML += `<a href="${snaptikUrl}" target="_blank">Unduh Video TikTok (No WM)</a>`;
+        
+        // Pilihan cadangan internal via tikwm
+        const tikwmUrl = `https://tikwm.com/api/?url=${encodeURIComponent(url)}`;
+        downloadLinks.innerHTML += `<a href="https://tikwm.com/" target="_blank" style="background:#333;">Cadangan: Cari di Server TikWM</a>`;
+        return;
+    }
+
+    // 2. JIKA LINK ADALAH PLATFORM LAIN (YOUTUBE, INSTAGRAM, FACEBOOK, DLL)
+    // Kita arahkan menggunakan sistem pengurai universal paling stabil (savefrom / 9jarocks)
+    downloadLinks.innerHTML += `<p style="font-size:14px; color:#aaa;">Silakan klik tombol di bawah untuk membuka jalur unduhan aman:</p>`;
+    
+    // Jalur Utama (SaveFrom gateway resmi)
+    const cleanUrl = url.replace('https://', '').replace('http://', '');
+    const savefromUrl = `https://id.savefrom.net/#url=${encodeURIComponent(url)}`;
+    downloadLinks.innerHTML += `<a href="${savefromUrl}" class="universal" target="_blank">Unduh Video (Via SaveFrom Server)</a>`;
+
+    // Jalur Cadangan Multi-fungsi
+    const backupUrl = `https://9jarocks.com.ng/download/v2/index.php?url=${encodeURIComponent(url)}`;
+    downloadLinks.innerHTML += `<a href="${backupUrl}" class="audio" target="_blank">Jalur Alternatif (Video / MP3)</a>`;
+}
+</script>
+
+</body>
+</html>
 </div>
 
 <script>
